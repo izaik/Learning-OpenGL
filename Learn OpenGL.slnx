@@ -1,0 +1,37 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/src/" />
+  <Folder Name="/src/1. Getting Started/">
+    <Project Path="src/1. Getting Started/1.1 Hello Window/1.1 Hello Window.vcxproj" Id="6f550dc8-93d3-4a23-a17e-b495a9be10d0" />
+    <Project Path="src/1. Getting Started/1.2 Hello Triangle/1.2 Hello Triangle.vcxproj" Id="398cd20c-cfea-4f28-b90b-b40bf668e27d" />
+    <Project Path="src/1. Getting Started/1.2.1 Hello Triangle Indexed/1.2.1 Hello Triangle Indexed.vcxproj" Id="90020b5e-84ba-4749-9e51-3121e7c4ddec" />
+    <Project Path="src/1. Getting Started/1.2.2 Two Hello Triangles/1.2.2 Two Hello Triangles.vcxproj" Id="4c70085e-b89a-40fd-b239-c61c41943113" />
+    <Project Path="src/1. Getting Started/1.2.3 Two Hello Triangles Different VBOs VAOs/1.2.3 Two Hello Triangles Different VBOs VAOs.vcxproj" Id="45ced052-eeea-47f4-8c9e-6c24039c4ac7" />
+    <Project Path="src/1. Getting Started/1.3.1 Shaders Uniform/1.3.1 Shaders Uniform.vcxproj" Id="e801f2ac-d656-43f5-903b-aac4f3f3bb6d" />
+    <Project Path="src/1. Getting Started/1.3.2 Shaders Interpolation/1.3.2 Shaders Interpolation.vcxproj" Id="aad36618-1f4f-4bd3-b435-4f981c1449c9" />
+    <Project Path="src/1. Getting Started/1.3.3 Shader Class - Upside Down Triangle/1.3.3 Shader Class - Upside Down Triangle.vcxproj" Id="c1bc67fa-caf0-4365-882b-fb59cf4c281b" />
+    <Project Path="src/1. Getting Started/1.4.1 Textures/1.4.1 Textures.vcxproj" Id="d91287d7-137a-480e-bf2d-df63de5c0416" />
+    <Project Path="src/1. Getting Started/1.4.2 Two Textures/1.4.2 Two Textures.vcxproj" Id="ac0be574-31c7-44f5-b388-70ca1ed0076c" />
+    <Project Path="src/1. Getting Started/1.5.1 Vector Transformation/1.5.1 Vector Transformation.vcxproj" Id="75226e0c-6429-438e-a001-43e7015b30bc" />
+    <Project Path="src/1. Getting Started/1.6.1 Going 3D/1.6.1 Going 3D.vcxproj" Id="4b465266-9cf0-449f-b8be-9fb3780f9a6b" />
+    <Project Path="src/1. Getting Started/1.6.2 More 3D/1.6.2 More 3D.vcxproj" Id="aa547613-64ca-4084-acec-d58d2b2b1c98" />
+    <Project Path="src/1. Getting Started/1.7.1 Camera/1.7.1 Camera.vcxproj" Id="744f6cc1-e979-47f4-8470-d218a2be22a9" />
+    <Project Path="src/1. Getting Started/1.7.2 Walk Around/1.7.2 Walk Around.vcxproj" Id="f2613f7a-d6df-4624-985e-f16fd8138506" />
+    <Project Path="src/1. Getting Started/1.7.3 Look Around/1.7.3 Look Around.vcxproj" Id="84acbeba-1b18-4749-af03-4aa6e92c5003" />
+    <Project Path="src/1. Getting Started/1.7.4 FPS Camera/1.7.4 FPS Camera.vcxproj" Id="399c836b-a075-429f-bec7-6639c43aaae3" />
+  </Folder>
+  <Folder Name="/src/2. Lighting/">
+    <Project Path="src/2. Lighting/2.1.1 Colors/2.1.1 Colors.vcxproj" Id="71826411-93f7-4aae-9ac1-d8e120ad2e06" />
+    <Project Path="src/2. Lighting/2.2.1 Basic Lighting/2.2.1 Basic Lighting.vcxproj" Id="a65d1724-f795-4a36-a7cf-b1fd98ba1005" />
+    <Project Path="src/2. Lighting/2.2.2 Phong in View Space/2.2.2 Phong in View Space.vcxproj" Id="f76f0b17-91eb-4f0a-a4d8-38499d0a1168" />
+    <Project Path="src/2. Lighting/2.2.3 Gouraud Lighting/2.2.3 Gouraud Lighting.vcxproj" Id="f8b75066-a9c8-4738-afd6-368cc4f5e211" />
+    <Project Path="src/2. Lighting/2.3.1 Materials/2.3.1 Materials.vcxproj" Id="af47d663-d4bd-46ef-8ee6-a3125834d6a3" />
+    <Project Path="src/2. Lighting/2.4.1 Texture Maps/2.4.1 Texture Maps.vcxproj" Id="c74201e8-3a5d-4d80-8ebb-c2667aa903d3" />
+    <Project Path="src/2. Lighting/2.5.1 Light Casters/2.5.1 Light Casters.vcxproj" Id="b6fa1e05-d74b-4e02-93c4-ef2869cd4d5b" />
+    <Project Path="src/2. Lighting/2.5.2 Point Light Casters/2.5.2 Point Light Casters.vcxproj" Id="a94db999-5c84-4e87-978d-5e113ff2c6e7" />
+    <Project Path="src/2. Lighting/2.5.3 Spot Light Casters/2.5.3 Spot Light Casters.vcxproj" Id="448dc96d-b080-4fd6-aa0f-7ba720cf804c" />
+  </Folder>
+</Solution>
