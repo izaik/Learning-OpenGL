@@ -85,7 +85,7 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// load and generate the texture
 	int width, height, nrChannels;
-	unsigned char* data = stbi_load("C:/Users/isaac/Desktop/Learn OpenGL/container.jpg", &width, &height, &nrChannels, 0); // texture1
+	unsigned char* data = stbi_load("../../../container.jpg", &width, &height, &nrChannels, 0); // texture1
 
 	if (data)
 	{

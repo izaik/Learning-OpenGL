@@ -156,8 +156,9 @@ int main()
 	glEnableVertexAttribArray(2);
 
 
-	unsigned int diffuseMap = loadTexture("C:\\Users\\isaac\\Desktop\\Learn OpenGL\\container2.png");
-	unsigned int specularMap = loadTexture(".\\container2_specular.png");
+	unsigned int diffuseMap = loadTexture("../../../container2.png");
+	unsigned int specularMap = loadTexture("../../../container2_specular.png");
+
 
 	lightingShader.use();
 	lightingShader.setInt("material.diffuse", 0);
