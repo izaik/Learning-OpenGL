@@ -33,5 +33,6 @@
     <Project Path="src/2. Lighting/2.5.1 Light Casters/2.5.1 Light Casters.vcxproj" Id="b6fa1e05-d74b-4e02-93c4-ef2869cd4d5b" />
     <Project Path="src/2. Lighting/2.5.2 Point Light Casters/2.5.2 Point Light Casters.vcxproj" Id="a94db999-5c84-4e87-978d-5e113ff2c6e7" />
     <Project Path="src/2. Lighting/2.5.3 Spot Light Casters/2.5.3 Spot Light Casters.vcxproj" Id="448dc96d-b080-4fd6-aa0f-7ba720cf804c" />
+    <Project Path="src/2. Lighting/2.6.1 Multiple Lights/2.6.1 Multiple Lights.vcxproj" Id="f83f8cde-922a-46b7-913d-204e5bbbb0fb" />
   </Folder>
 </Solution>
