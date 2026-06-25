@@ -8,8 +8,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <shaderclass/shaderclass.h>
-#include <cameraclass/fpscameraclass.h>
+#include <shaderclass/shader.h>
+#include <cameraclass/fpscamera.h>
 
 #include <iostream>
 

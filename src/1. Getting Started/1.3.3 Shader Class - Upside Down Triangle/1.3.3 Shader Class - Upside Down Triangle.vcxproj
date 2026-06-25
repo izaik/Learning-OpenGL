@@ -140,7 +140,7 @@
     <None Include="..\..\vertexShader.vs" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\include\shaderclass\shaderclass.h" />
+    <ClInclude Include="..\..\..\include\shaderclass\shader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

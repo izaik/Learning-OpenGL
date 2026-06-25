@@ -138,7 +138,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\include\glad\glad.h" />
     <ClInclude Include="..\..\..\include\GLFW\glfw3.h" />
-    <ClInclude Include="..\..\..\include\shaderclass\shaderclass.h" />
+    <ClInclude Include="..\..\..\include\shaderclass\shader.h" />
     <ClInclude Include="..\..\..\include\stbimage\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
