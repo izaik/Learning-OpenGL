@@ -19,14 +19,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 unsigned int loadTexture(const char* path);
-void renderScene(const Shader& shader);
 void renderCube();
 void renderQuad();
 
 // settings
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
-const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -38,15 +36,7 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-// meshes
-unsigned int planeVAO;
-
-// light position
-glm::vec3 lightPos(0.0f, 2.0f, 0.0f);
-
-glm::vec3 cube1pos = glm::vec3(0.0f, 1.5f, 0.0),
-cube2pos = glm::vec3(2.0f, 0.0f, 1.0),
-cube3pos = glm::vec3(-1.0f, 0.0f, 2.0);
+glm::vec3 cube1pos = glm::vec3(0.0f, 1.5f, 0.0);
 
 int main()
 {
@@ -92,58 +82,64 @@ int main()
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    
 
     // build and compile shaders
     // -------------------------
-    Shader shader("parallaxmapping.vert", "parallaxmapping.frag");
+    Shader shader("HDR.vert", "HDR.frag");
+    Shader hdrShader("SHOULDACALLEDTHISHDR.vert", "SHOULDACALLEDTHISHDR.frag");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
-    float planeVertices[] = {
-        // positions            // normals         // texcoords
-         25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
-        -25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-        -25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
-
-         25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
-        -25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
-         25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,  25.0f, 25.0f
-    };
-
-    // plane VAO
-    unsigned int planeVBO;
-    glGenVertexArrays(1, &planeVAO);
-    glGenBuffers(1, &planeVBO);
-    glBindVertexArray(planeVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glBindVertexArray(0);
-
     // framebuffer config
+    // floating point framebuffer
     unsigned int hdrFBO;
-    glGenFramebuffers(0, &hdrFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+    glGenFramebuffers(1, &hdrFBO);
+    // floating point color buffer
     unsigned int colorBuffer;
     glGenTextures(1, &colorBuffer);
     glBindTexture(GL_TEXTURE_2D, colorBuffer);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    // create depth buffer (renderbuffer)
+    unsigned int rboDepth;
+    glGenRenderbuffers(1, &rboDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
+    // attach buffers
+    glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "Framebuffer not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // point lights
+    // positions
+    std::vector<glm::vec3> lightPositions;
+    lightPositions.push_back(glm::vec3(0.0f, 0.0f, -6.5f)); // light at end of tunnelt
+    lightPositions.push_back(glm::vec3(-1.4f, -1.9f, -9.0f));
+    lightPositions.push_back(glm::vec3(0.0f, -1.8f, -4.0f));
+    lightPositions.push_back(glm::vec3(0.8f, -1.7f, -6.0f));
+    // colors
+    std::vector<glm::vec3> lightColors;
+    lightColors.push_back(glm::vec3(200.0f, 200.0f, 200.0f));
+    lightColors.push_back(glm::vec3(0.1f, 0.0f, 0.0f));
+    lightColors.push_back(glm::vec3(0.0f, 0.0f, 0.2f));
+    lightColors.push_back(glm::vec3(0.0f, 0.1f, 0.0f));
 
     // load textures
     // -------------
+    unsigned int brickDiffuse = loadTexture("../../../textures/brickwall.jpg");
 
     // shader configuration
     // --------------------
     shader.use();
+    shader.setInt("diffuseMap", 0);
+    hdrShader.use();
+    hdrShader.setInt("hdrBuffer", 0);
 
     // render loop
     // -----------
@@ -161,24 +157,43 @@ int main()
 
         // render
         // ------
-
-        glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
-        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shader.use();
+        // render scene normally with the point lights
+        glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 model = glm::mat4(1.0f);
+            shader.use();
+            
+            glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+            glm::mat4 view = camera.GetViewMatrix();
+            shader.setMat4("projection", projection);
+            shader.setMat4("view", view);
+            for (unsigned int i = 0; i < lightPositions.size(); i++)
+            {
+                shader.setVec3("lights[" + std::to_string(i) + "].Position", lightPositions[i]);
+                shader.setVec3("lights[" + std::to_string(i) + "].Color",    lightColors[i]);
+            }
 
-        shader.setMat4("projection", projection);
-        shader.setMat4("view", view);
+            shader.setVec3("viewPos", camera.Position);
 
-        shader.setMat4("model", model);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, brickDiffuse);
+            
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+            model = glm::scale(model, glm::vec3(1.0f, 1.0f, 6.0f));
+            shader.setMat4("model", model);
+            renderCube();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        shader.setVec3("lightPos", lightPos);
-        shader.setVec3("viewPos", camera.Position);
+        //// render the hdr buffer
+        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //hdrShader.use();
+        //glActiveTexture(GL_TEXTURE0);
+        //glBindTexture(GL_TEXTURE_2D, colorBuffer);
+        //renderQuad();
 
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -194,36 +209,6 @@ int main()
     glfwTerminate();
     return 0;
 }
-
-// renders the 3D scene
-// --------------------
-void renderScene(const Shader& shader)
-{
-    // floor
-    glm::mat4 model = glm::mat4(1.0f);
-    //model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(1.0, 0.0, 0.0)));
-    shader.setMat4("model", model);
-    glBindVertexArray(planeVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    //// cubes
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, cube1pos);
-    model = glm::scale(model, glm::vec3(0.5f));
-    shader.setMat4("model", model);
-    renderCube();
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, cube2pos);
-    model = glm::scale(model, glm::vec3(0.5f));
-    shader.setMat4("model", model);
-    renderCube();
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, cube3pos);
-    model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-    model = glm::scale(model, glm::vec3(0.25));
-    shader.setMat4("model", model);
-    renderCube();
-}
-
 
 // renderCube() renders a 1x1 3D cube in NDC.
 // -------------------------------------------------
