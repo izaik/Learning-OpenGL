@@ -23,9 +23,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="lighting.frag" />
+    <None Include="lighting.vert" />
     <None Include="HDR.frag" />
     <None Include="HDR.vert" />
-    <None Include="SHOULDACALLEDTHISHDR.frag" />
-    <None Include="SHOULDACALLEDTHISHDR.vert" />
   </ItemGroup>
 </Project>

@@ -82,13 +82,12 @@ int main()
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
     
 
     // build and compile shaders
     // -------------------------
-    Shader shader("HDR.vert", "HDR.frag");
-    Shader hdrShader("SHOULDACALLEDTHISHDR.vert", "SHOULDACALLEDTHISHDR.frag");
+    Shader shader("lighting.vert", "lighting.frag");
+    Shader hdrShader("HDR.vert", "HDR.frag");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -119,7 +118,7 @@ int main()
     // point lights
     // positions
     std::vector<glm::vec3> lightPositions;
-    lightPositions.push_back(glm::vec3(0.0f, 0.0f, -6.5f)); // light at end of tunnelt
+    lightPositions.push_back(glm::vec3(0.0f, 0.0f, -49.5f)); // back light
     lightPositions.push_back(glm::vec3(-1.4f, -1.9f, -9.0f));
     lightPositions.push_back(glm::vec3(0.0f, -1.8f, -4.0f));
     lightPositions.push_back(glm::vec3(0.8f, -1.7f, -6.0f));
@@ -139,7 +138,7 @@ int main()
     shader.use();
     shader.setInt("diffuseMap", 0);
     hdrShader.use();
-    hdrShader.setInt("hdrBuffer", 0);
+    hdrShader.setInt("hdrBuffer", 1);
 
     // render loop
     // -----------
@@ -160,10 +159,10 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // render scene normally with the point lights
         glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // render scene normally with the point lights
 
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             shader.use();
             
             glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -182,18 +181,19 @@ int main()
             glBindTexture(GL_TEXTURE_2D, brickDiffuse);
             
             glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-            model = glm::scale(model, glm::vec3(1.0f, 1.0f, 6.0f));
+            model = glm::translate(model, glm::vec3(0.0f, 0.0f, -24.0));
+            model = glm::scale(model, glm::vec3(2.5f, 2.5f, -27.5f));
             shader.setMat4("model", model);
             renderCube();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        //// render the hdr buffer
-        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        //hdrShader.use();
-        //glActiveTexture(GL_TEXTURE0);
-        //glBindTexture(GL_TEXTURE_2D, colorBuffer);
-        //renderQuad();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        hdrShader.use();
+        hdrShader.setFloat("exposure", 0.5);
+        hdrShader.setFloat("max_white", 1.0);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, colorBuffer);
+        renderQuad();
 
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)

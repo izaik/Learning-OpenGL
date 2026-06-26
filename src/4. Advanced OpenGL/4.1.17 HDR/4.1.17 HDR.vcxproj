@@ -136,10 +136,10 @@
     <ClCompile Include="HDR.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="lighting.frag" />
+    <None Include="lighting.vert" />
     <None Include="HDR.frag" />
     <None Include="HDR.vert" />
-    <None Include="SHOULDACALLEDTHISHDR.frag" />
-    <None Include="SHOULDACALLEDTHISHDR.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
