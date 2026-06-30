@@ -140,6 +140,7 @@
     <None Include="bloom_final.vert" />
     <None Include="blur.frag" />
     <None Include="blur.vert" />
+    <None Include="bright_cube.frag" />
     <None Include="lighting.frag" />
     <None Include="lighting.vert" />
   </ItemGroup>

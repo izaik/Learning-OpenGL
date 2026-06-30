@@ -251,6 +251,7 @@ int main()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, pingpongBuffers[!horizontal]);
         bloomFinalShader.setFloat("exposure", 1.0);
+        bloomFinalShader.setBool("bloom", bloom);
         renderQuad();
 
         std::cout << "bloom: " << (bloom ? "on" : "off") << std::endl;

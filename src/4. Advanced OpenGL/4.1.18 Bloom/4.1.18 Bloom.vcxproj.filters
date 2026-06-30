@@ -29,5 +29,6 @@
     <None Include="lighting.vert" />
     <None Include="blur.frag" />
     <None Include="blur.vert" />
+    <None Include="bright_cube.frag" />
   </ItemGroup>
 </Project>
