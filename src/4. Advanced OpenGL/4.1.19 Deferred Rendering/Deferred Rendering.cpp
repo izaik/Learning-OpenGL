@@ -36,10 +36,6 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-// light attenuation settings
-const float linear = 0.7f;
-const float quadratic = 1.8f;
-
 int main()
 {
     // glfw: initialize and configure
@@ -234,14 +230,24 @@ int main()
         glBindTexture(GL_TEXTURE_2D, gNormal);
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+
+        
+
         // send light pos and colors to lighting shader
         for (unsigned int i = 0; i < lightPositions.size(); i++)
         {
             lightingShader.setVec3("lights[" + std::to_string(i) + "].Position", lightPositions[i]);
             lightingShader.setVec3("lights[" + std::to_string(i) + "].Color", lightColors[i]);
             
+            float constant = 1.0;
+            float linear = 0.7;
+            float quadratic = 1.8;
+            float lightMax = std::fmaxf(std::fmaxf(lightColors[i].r, lightColors[i].g), lightColors[i].b);
+            float radius = (-linear + std::sqrtf(linear * linear - 4 * quadratic * (constant - (256.0 / 5.0) * lightMax))) / (2 * quadratic);
+
             lightingShader.setFloat("lights[" + std::to_string(i) + "].Linear", linear);
             lightingShader.setFloat("lights[" + std::to_string(i) + "].Quadratic", quadratic);
+            lightingShader.setFloat("lights[" + std::to_string(i) + "].Radius", radius);
         }
         lightingShader.setVec3("viewPos", camera.Position);
         renderQuad();
