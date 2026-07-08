@@ -51,6 +51,7 @@
     <Project Path="src/4. Advanced OpenGL/4.1.18 Bloom/4.1.18 Bloom.vcxproj" Id="4f4f22c2-69ec-420f-8f1e-75866203f7de" />
     <Project Path="src/4. Advanced OpenGL/4.1.19 Deferred Rendering/4.1.19 Deferred Rendering.vcxproj" Id="32f5340c-d45b-484b-b3ea-81bb700870a7" />
     <Project Path="src/4. Advanced OpenGL/4.1.2 Blending/4.1.2 Blending.vcxproj" Id="535772f8-2aee-4f0d-9b09-cb2b72a8eb5a" />
+    <Project Path="src/4. Advanced OpenGL/4.1.20 SSAO/4.1.20 SSAO.vcxproj" Id="ce534e7e-d4ab-43cc-99d9-669705c0299e" />
     <Project Path="src/4. Advanced OpenGL/4.1.3 Face Culling/4.1.3 Face Culling.vcxproj" Id="f86fee73-9a55-4e2e-b781-28c0e7eab394" />
     <Project Path="src/4. Advanced OpenGL/4.1.4 Framebuffers/4.1.4 Framebuffers.vcxproj" Id="ae6f9c55-72c5-4b49-af4f-649e2f5d1ac7" />
     <Project Path="src/4. Advanced OpenGL/4.1.5 Cubemaps/4.1.5 Cubemaps.vcxproj" Id="da52247c-1d2f-4dd2-9c6c-617c0b35ca26" />
