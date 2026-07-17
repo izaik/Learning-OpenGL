@@ -60,4 +60,7 @@
     <Project Path="src/4. Advanced OpenGL/4.1.8 Normal Geometry Shader/4.1.8 Normal Geometry Shader.vcxproj" Id="888d5237-8e95-4c4f-b27c-b26cb123e9c6" />
     <Project Path="src/4. Advanced OpenGL/4.1.9 Instancing/4.1.9 Instancing.vcxproj" Id="2eee41d3-9005-4bfd-a033-8ae7632da273" />
   </Folder>
+  <Folder Name="/src/5. PBR/">
+    <Project Path="src/5. PBR/5.1.1 PBR Lighting/5.1.1 PBR Lighting.vcxproj" Id="4a7211fd-b1dc-4b2f-8f79-293a52b0f6ae" />
+  </Folder>
 </Solution>
