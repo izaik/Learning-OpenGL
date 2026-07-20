@@ -62,5 +62,6 @@
   </Folder>
   <Folder Name="/src/5. PBR/">
     <Project Path="src/5. PBR/5.1.1 PBR Lighting/5.1.1 PBR Lighting.vcxproj" Id="4a7211fd-b1dc-4b2f-8f79-293a52b0f6ae" />
+    <Project Path="src/5. PBR/5.1.2 Textured PBR/5.1.2 Textured PBR.vcxproj" Id="187e443c-f53e-4943-a2e4-94ff2df5a0dc" />
   </Folder>
 </Solution>
