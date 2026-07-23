@@ -137,7 +137,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="IBL.frag" />
-    <None Include="IBL.vert" />
+    <None Include="toCubemap.frag" />
+    <None Include="toCubemap.vert" />
     <None Include="pbr.frag" />
     <None Include="pbr.vert" />
     <None Include="skybox.frag" />

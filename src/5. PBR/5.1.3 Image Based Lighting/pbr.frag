@@ -21,6 +21,9 @@ struct Light {
 const int NR_LIGHTS = 32;
 uniform Light lights[NR_LIGHTS];
 
+// irradiance map for ibl
+uniform samplerCube irradianceMap;
+
 const float PI = 3.14159265359;
 
 vec3 getNormalFromMap()
@@ -111,21 +114,29 @@ void main()
         float NDF = DistributionGGX(N, H, roughness);       
         float G   = GeometrySmith(N, V, L, roughness);   
 
-        vec3 kS = F;
-        vec3 kD = vec3(1.0) - kS;
-        kD *= 1.0 - metallic;	
-
         vec3 numerator    = NDF * G * F;
         float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0)  + 0.0001; //add 0.0001 to prevent value being 0
         vec3 specular     = numerator / denominator;  
+
+        vec3 kS = F;
+        vec3 kD = vec3(1.0) - kS;
+        kD *= 1.0 - metallic;
 
         // add to outgoing radiance Lo
         float NdotL = max(dot(N, L), 0.0);        
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 	}
     
-    vec3 ambient = vec3(0.03) * albedo * ao;
-    vec3 color   = ambient + Lo;  
+    // ambient lighting (we now use IBL as the ambient term)
+    vec3 kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - metallic;	  
+    vec3 irradiance = texture(irradianceMap, N).rgb;
+    vec3 diffuse      = irradiance * albedo;
+    vec3 ambient = (kD * diffuse) * ao;
+    // vec3 ambient = vec3(0.002);
+    
+    vec3 color = ambient + Lo; 
 
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2)); 

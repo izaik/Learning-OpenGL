@@ -25,9 +25,10 @@
   <ItemGroup>
     <None Include="pbr.frag" />
     <None Include="pbr.vert" />
-    <None Include="IBL.vert" />
-    <None Include="IBL.frag" />
+    <None Include="toCubemap.vert" />
+    <None Include="toCubemap.frag" />
     <None Include="skybox.vert" />
     <None Include="skybox.frag" />
+    <None Include="IBL.frag" />
   </ItemGroup>
 </Project>
