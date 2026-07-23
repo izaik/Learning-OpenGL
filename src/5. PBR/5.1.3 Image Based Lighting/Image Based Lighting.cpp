@@ -81,13 +81,16 @@ int main()
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL); // set depth function to less than AND equal for skybox depth trick.
 
     // build and compile shaders
     // -------------------------
     Shader pbrShader("pbr.vert", "pbr.frag");
     Shader iblShader("IBL.vert", "IBL.frag");
+    Shader skyboxShader("skybox.vert", "skybox.frag");
 
     // load textures
+    // --------------------
     unsigned int albedo = loadTexture("../../../textures/pbr/rusted_iron/albedo.png");
     unsigned int normal = loadTexture("../../../textures/pbr/rusted_iron/normal.png");
     unsigned int metallic = loadTexture("../../../textures/pbr/rusted_iron/metallic.png");
@@ -112,11 +115,7 @@ int main()
     int nrColumns = 7;
     float spacing = 2.5;
 
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    pbrShader.use();
-    pbrShader.setMat4("projection", projection);
-
-    // load ibl cubemap
+    // load hdr envmap
     // ------
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrComponents;
@@ -140,7 +139,8 @@ int main()
         std::cout << "Failed to load HDR image." << std::endl;
     }
 
-    // set up framebuffer for ibl cubemap
+    // set up framebuffer for hdr envmap
+    // --------------------
     unsigned int captureFBO, captureRBO;
     glGenFramebuffers(1, &captureFBO);
     glGenRenderbuffers(1, &captureRBO);
@@ -149,7 +149,8 @@ int main()
     glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
-    // create cubemap texture
+    // create cubemap texture to render to and attach to framebuffer
+    // --------------------
     unsigned int envCubemap;
     glGenTextures(1, &envCubemap);
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
@@ -184,9 +185,42 @@ int main()
     pbrShader.setInt("metallicMap", 2);
     pbrShader.setInt("roughnessMap", 3);
     pbrShader.setInt("aoMap", 4);
+    skyboxShader.use();
+    skyboxShader.setInt("environmentMap", 0);
     
+    // convert HDR equirectangular environment map to cubemap equivalent
+    // --------------------
+    iblShader.use();
+    iblShader.setInt("equirectangularMap", 0);
+    iblShader.setMat4("projection", captureProjection);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, hdrTexture);
 
+    glViewport(0, 0, 512, 512); // don't forget to configure the viewport to the capture dimensions.
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        iblShader.setMat4("view", captureViews[i]);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        renderCube(); // renders a 1x1 cube
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // initialize static shader uniforms before render loop
+    // --------------------
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    pbrShader.use();
+    pbrShader.setMat4("projection", projection);
+    skyboxShader.use();
+    skyboxShader.setMat4("projection", projection);
+
+    // then before rendering, configure the viewport to the original framebuffer's screen dimensions
+    int scrWidth, scrHeight;
+    glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
+    glViewport(0, 0, scrWidth, scrHeight);
 
     // render loop
     // -----------
@@ -207,28 +241,6 @@ int main()
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // convert HDR equirectangular environment map to cubemap equivalent
-        iblShader.use();
-        iblShader.setInt("equirectangularMap", 0);
-        iblShader.setMat4("projection", captureProjection);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, hdrTexture);
-
-        glViewport(0, 0, 512, 512); // don't forget to configure the viewport to the capture dimensions.
-        glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-        for (unsigned int i = 0; i < 6; ++i)
-        {
-            iblShader.setMat4("view", captureViews[i]);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            renderCube(); // renders a 1x1 cube
-        }
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         pbrShader.use();
         glm::mat4 view = camera.GetViewMatrix();
@@ -280,6 +292,12 @@ int main()
             renderSphere();
         }
 
+        // render skybox last to prevent overdraw
+        skyboxShader.use();
+        skyboxShader.setMat4("view", view);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+        renderCube();
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

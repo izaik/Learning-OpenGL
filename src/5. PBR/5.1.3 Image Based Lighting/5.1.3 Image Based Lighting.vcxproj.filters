@@ -27,5 +27,7 @@
     <None Include="pbr.vert" />
     <None Include="IBL.vert" />
     <None Include="IBL.frag" />
+    <None Include="skybox.vert" />
+    <None Include="skybox.frag" />
   </ItemGroup>
 </Project>
