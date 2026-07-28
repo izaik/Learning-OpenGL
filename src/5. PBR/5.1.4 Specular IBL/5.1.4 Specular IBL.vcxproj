@@ -141,6 +141,7 @@
     <None Include="pbr.vert" />
     <None Include="skybox.frag" />
     <None Include="skybox.vert" />
+    <None Include="specularIBL.frag" />
     <None Include="toCubemap.frag" />
     <None Include="toCubemap.vert" />
   </ItemGroup>

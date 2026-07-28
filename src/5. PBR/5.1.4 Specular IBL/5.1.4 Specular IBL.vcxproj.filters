@@ -30,5 +30,6 @@
     <None Include="skybox.vert" />
     <None Include="toCubemap.frag" />
     <None Include="toCubemap.vert" />
+    <None Include="specularIBL.frag" />
   </ItemGroup>
 </Project>
