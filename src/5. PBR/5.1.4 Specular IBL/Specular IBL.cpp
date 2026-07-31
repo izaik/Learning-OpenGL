@@ -82,6 +82,7 @@ int main()
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL); // set depth function to less than AND equal for skybox depth trick.
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS); // stops seams from forming when using lower mip levels
 
     // build and compile shaders
     // -------------------------
@@ -89,6 +90,7 @@ int main()
     Shader toCubemapShader("toCubemap.vert", "toCubemap.frag");
     Shader skyboxShader("skybox.vert", "skybox.frag");
     Shader iblShader("toCubemap.vert", "IBL.frag");
+    Shader specularIblShader("toCubemap.vert", "specularIBL.frag");
 
     // shader configuration
     // --------------------
@@ -162,6 +164,7 @@ int main()
     glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
+
     // create cubemap texture to render to and attach to framebuffer
     // --------------------
     unsigned int envCubemap;
@@ -189,6 +192,10 @@ int main()
        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
     };
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
     // convert HDR equirectangular environment map to cubemap equivalent
    // --------------------
     toCubemapShader.use();
@@ -209,6 +216,9 @@ int main()
         renderCube(); // renders a 1x1 cube
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // then generate mipmaps
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
     // create irradiance map
     // --------------------
     unsigned int irradianceMap;
@@ -228,6 +238,7 @@ int main()
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
     glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
+
     // render environment map to irradiance shader
     // --------------------
     iblShader.use();
@@ -248,6 +259,7 @@ int main()
         renderCube();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     // cubemap to hold prefiltered environment data
     unsigned int prefilterMap;
     glGenTextures(1, &prefilterMap);
@@ -263,6 +275,38 @@ int main()
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+    // pbr: run a quasi monte-carlo simulation on the environment lighting to create a prefilter (cube)map.
+   // ----------------------------------------------------------------------------------------------------
+    specularIblShader.use();
+    specularIblShader.setInt("environmentMap", 0);
+    specularIblShader.setMat4("projection", captureProjection);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    unsigned int maxMipLevels = 5;
+    for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
+    {
+        // resize framebuffer according to mip-level size.
+        unsigned int mipWidth = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+        unsigned int mipHeight = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+        glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+        glViewport(0, 0, mipWidth, mipHeight);
+
+        float roughness = (float)mip / (float)(maxMipLevels - 1);
+        specularIblShader.setFloat("roughness", roughness);
+        for (unsigned int i = 0; i < 6; ++i)
+        {
+            specularIblShader.setMat4("view", captureViews[i]);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            renderCube();
+        }
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // initialize static shader uniforms before render loop
     // --------------------
