@@ -20,6 +20,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 unsigned int loadTexture(const char* path);
+void renderQuad();
 void renderCube();
 void renderSphere();
 
@@ -90,7 +91,8 @@ int main()
     Shader toCubemapShader("toCubemap.vert", "toCubemap.frag");
     Shader skyboxShader("skybox.vert", "skybox.frag");
     Shader iblShader("toCubemap.vert", "IBL.frag");
-    Shader specularIblShader("toCubemap.vert", "specularIBL.frag");
+    Shader prefilterShader("toCubemap.vert", "prefilter.frag");
+    Shader brdfShader("brdf.vert", "brdf.frag");
 
     // shader configuration
     // --------------------
@@ -101,6 +103,8 @@ int main()
     pbrShader.setInt("roughnessMap", 3);
     pbrShader.setInt("aoMap", 4);
     pbrShader.setInt("irradianceMap", 5);
+    pbrShader.setInt("prefilterMap", 6);
+    pbrShader.setInt("brdfLUT", 7);
     skyboxShader.use();
     skyboxShader.setInt("environmentMap", 0);
 
@@ -278,9 +282,9 @@ int main()
 
     // pbr: run a quasi monte-carlo simulation on the environment lighting to create a prefilter (cube)map.
    // ----------------------------------------------------------------------------------------------------
-    specularIblShader.use();
-    specularIblShader.setInt("environmentMap", 0);
-    specularIblShader.setMat4("projection", captureProjection);
+    prefilterShader.use();
+    prefilterShader.setInt("environmentMap", 0);
+    prefilterShader.setMat4("projection", captureProjection);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 
@@ -296,16 +300,41 @@ int main()
         glViewport(0, 0, mipWidth, mipHeight);
 
         float roughness = (float)mip / (float)(maxMipLevels - 1);
-        specularIblShader.setFloat("roughness", roughness);
+        prefilterShader.setFloat("roughness", roughness);
         for (unsigned int i = 0; i < 6; ++i)
         {
-            specularIblShader.setMat4("view", captureViews[i]);
+            prefilterShader.setMat4("view", captureViews[i]);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             renderCube();
         }
     }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // texture to hold look up table containing brdf convolution result
+    unsigned int brdfLUTTexture;
+    glGenTextures(1, &brdfLUTTexture);
+
+    // pre-allocate enough memory for the LUT texture.
+    glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 512, 512, 0, GL_RG, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
+
+    glViewport(0, 0, 512, 512);
+    brdfShader.use();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    renderQuad();
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // initialize static shader uniforms before render loop
@@ -360,6 +389,10 @@ int main()
         glBindTexture(GL_TEXTURE_2D, ao);
         glActiveTexture(GL_TEXTURE5);
         glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+        glActiveTexture(GL_TEXTURE6);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+        glActiveTexture(GL_TEXTURE7);
+        glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
 
         for (int row = 0; row < nrRows; ++row)
         {
@@ -400,6 +433,8 @@ int main()
         glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
         renderCube();
 
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
@@ -412,6 +447,37 @@ int main()
     // ------------------------------------------------------------------
     glfwTerminate();
     return 0;
+}
+
+// renders a 1x1 quad in NDC with manually calculated tangent vectors
+// ------------------------------------------------------------------
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad()
+{
+    if (quadVAO == 0)
+    {
+        float quadVertices[] = {
+            // positions        // texture Coords
+            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+             1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+             1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        };
+        // setup quad VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
 }
 
 // renderCube() renders a 1x1 3D cube in NDC.
