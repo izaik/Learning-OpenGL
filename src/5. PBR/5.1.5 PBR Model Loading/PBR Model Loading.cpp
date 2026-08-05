@@ -97,19 +97,19 @@ int main()
     // shader configuration
     // --------------------
     pbrShader.use();
-    pbrShader.setInt("irradianceMap", 5);
-    pbrShader.setInt("prefilterMap", 6);
-    pbrShader.setInt("brdfLUT", 7);
+    pbrShader.setInt("irradianceMap", 11);
+    pbrShader.setInt("prefilterMap", 12);
+    pbrShader.setInt("brdfLUT", 13);
     skyboxShader.use();
     skyboxShader.setInt("environmentMap", 0);
 
     // load textures
     // --------------------
-    unsigned int albedo = loadTexture("../../../textures/pbr/rusted_iron/albedo.png");
-    unsigned int normal = loadTexture("../../../textures/pbr/rusted_iron/normal.png");
-    unsigned int metallic = loadTexture("../../../textures/pbr/rusted_iron/metallic.png");
-    unsigned int roughness = loadTexture("../../../textures/pbr/rusted_iron/roughness.png");
-    unsigned int ao = loadTexture("../../../textures/pbr/rusted_iron/ao.png");
+    //unsigned int albedo = loadTexture("../../../textures/pbr/rusted_iron/albedo.png");
+    //unsigned int normal = loadTexture("../../../textures/pbr/rusted_iron/normal.png");
+    //unsigned int metallic = loadTexture("../../../textures/pbr/rusted_iron/metallic.png");
+    //unsigned int roughness = loadTexture("../../../textures/pbr/rusted_iron/roughness.png");
+    //unsigned int ao = loadTexture("../../../textures/pbr/rusted_iron/ao.png");
 
     // load model
     Model cerberus("../../../Cerberus_by_Andrew_Maximov/Cerberus_LP.FBX");
@@ -373,18 +373,26 @@ int main()
         pbrShader.setMat4("view", view);
         pbrShader.setVec3("camPos", camera.Position);
 
+        glActiveTexture(GL_TEXTURE11);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+        glActiveTexture(GL_TEXTURE12);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+        glActiveTexture(GL_TEXTURE13);
+        glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
         pbrShader.setMat4("model", model);
 
         cerberus.Draw(pbrShader);
         
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
-        glActiveTexture(GL_TEXTURE6);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
-        glActiveTexture(GL_TEXTURE7);
-        glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+        for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
+        {
+            glm::vec3 newPos = lightPositions[i] + glm::vec3(sin(glfwGetTime() * 5.0) * 5.0, 0.0, 0.0);
+            newPos = lightPositions[i];
+            pbrShader.setVec3("lights[" + std::to_string(i) + "].Position", newPos);
+            pbrShader.setVec3("lights[" + std::to_string(i) + "].Color", lightColors[i]);
+        }
 
         // render skybox last to prevent overdraw
         skyboxShader.use();
