@@ -151,6 +151,8 @@ private:
         // specular: texture_specularN
         // normal: texture_normalN
 
+        // blinn-phong materials
+        // -------------------------------------------------------------
         // 1. diffuse maps
         vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
@@ -164,6 +166,28 @@ private:
         std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
+        // pbr materials
+        // -------------------------------------------------------------
+        // 1. albedo maps
+        vector<Texture> albedoMaps = loadMaterialTextures(material, aiTextureType_BASE_COLOR, "texture_albedo");
+        textures.insert(textures.end(), albedoMaps.begin(), albedoMaps.end());
+        // 2. normal maps
+        vector<Texture> normalPBRMaps = loadMaterialTextures(material, aiTextureType_NORMAL_CAMERA, "texture_normal");
+        textures.insert(textures.end(), normalPBRMaps.begin(), normalPBRMaps.end());
+        // 3. emission maps
+        vector<Texture> emissionPBRMaps = loadMaterialTextures(material, aiTextureType_EMISSION_COLOR, "texture_emission");
+        textures.insert(textures.end(), emissionPBRMaps.begin(), emissionPBRMaps.end());
+        // 4. metalness maps
+        vector<Texture> metalnessMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "texture_metalness");
+        textures.insert(textures.end(), metalnessMaps.begin(), metalnessMaps.end());
+        // 5. roughness maps
+        vector<Texture> roughnessMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "texture_roughness");
+        textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
+        // 6. ao maps
+        vector<Texture> aoMaps = loadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, "texture_ao");
+        textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
+
+        // -------------------------------------------------------------
         // return a mesh object created from the extracted mesh data
         return Mesh(vertices, indices, textures);
     }
