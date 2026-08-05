@@ -77,7 +77,7 @@ int main()
     }
 
     // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
-    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(false);
 
     // configure global opengl state
     // -----------------------------
@@ -97,11 +97,6 @@ int main()
     // shader configuration
     // --------------------
     pbrShader.use();
-    pbrShader.setInt("texture_albedo1", 0);
-    pbrShader.setInt("texture_normal1", 1);
-    pbrShader.setInt("texture_metalness1", 2);
-    pbrShader.setInt("texture_roughness1", 3);
-    pbrShader.setInt("texture_ao1", 4);
     pbrShader.setInt("irradianceMap", 5);
     pbrShader.setInt("prefilterMap", 6);
     pbrShader.setInt("brdfLUT", 7);
@@ -379,7 +374,7 @@ int main()
         pbrShader.setVec3("camPos", camera.Position);
 
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+        model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
         pbrShader.setMat4("model", model);
 
         cerberus.Draw(pbrShader);
